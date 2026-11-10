@@ -7,6 +7,10 @@ use App\Models\Employee;
 
 class EmployeeTable extends Component
 {
+    // Search & Filter properties
+    public string $search = '';
+    public string $departmentFilter = '';
+
     public ?int $selectedEmployeeId = null;
 
     // Modal states
@@ -25,14 +29,18 @@ class EmployeeTable extends Component
     public string $department = '';
     public string $date_hired = '';
 
-    // Row click selection
+    // Clear search and department filter
+    public function clearFilters(): void
+    {
+        $this->reset(['search', 'departmentFilter']);
+    }
+
     public function selectEmployee(int $id): void
     {
         $this->selectedEmployeeId = ($this->selectedEmployeeId === $id) ? null : $id;
         $this->statusMessage = '';
     }
 
-    // 1. ADD BUTTON FUNCTION
     public function openAddModal(): void
     {
         $this->reset(['name', 'email', 'position', 'department', 'date_hired', 'isEditing', 'showSaveConfirmModal', 'statusMessage']);
@@ -40,7 +48,6 @@ class EmployeeTable extends Component
         $this->showModal = true;
     }
 
-    // 2. EDIT BUTTON FUNCTION (Works from Sidebar OR Row button)
     public function openEditModal(?int $id = null): void
     {
         if ($id) {
@@ -69,7 +76,6 @@ class EmployeeTable extends Component
         $this->showModal = true;
     }
 
-    // 3. DELETE BUTTON FUNCTION (Opens Confirmation Modal)
     public function openDeleteModal(?int $id = null): void
     {
         if ($id) {
@@ -84,7 +90,6 @@ class EmployeeTable extends Component
         $this->showDeleteConfirmModal = true;
     }
 
-    // Confirm and execute delete
     public function deleteConfirmed(): void
     {
         if ($this->selectedEmployeeId) {
@@ -96,7 +101,6 @@ class EmployeeTable extends Component
         $this->showDeleteConfirmModal = false;
     }
 
-    // 4. PRE-SAVE CONFIRMATION FUNCTION
     public function confirmSave(): void
     {
         $this->validate([
@@ -107,11 +111,9 @@ class EmployeeTable extends Component
             'date_hired' => 'required|date',
         ]);
 
-        // Open the confirmation modal after validation passes
         $this->showSaveConfirmModal = true;
     }
 
-    // 5. FINAL SAVE / UPDATE FUNCTION
     public function save(): void
     {
         $data = [
@@ -137,13 +139,35 @@ class EmployeeTable extends Component
 
     public function render()
     {
-        // Keep whichever view path worked for you ('livewire.employee-table' or 'components.employee-table')
         $viewPath = view()->exists('livewire.employee-table')
             ? 'livewire.employee-table'
             : 'components.employee-table';
 
+        $employees = Employee::query()
+            ->when(trim($this->search) !== '', function ($query) {
+                $term = '%' . trim($this->search) . '%';
+                $query->where(function ($q) use ($term) {
+                    $q->where('name', 'like', $term)
+                      ->orWhere('email', 'like', $term)
+                      ->orWhere('position', 'like', $term)
+                      ->orWhere('department', 'like', $term);
+                });
+            })
+            ->when($this->departmentFilter !== '', function ($query) {
+                $query->where('department', $this->departmentFilter);
+            })
+            ->latest('id')
+            ->get();
+
+        // Get unique departments for the dropdown filter
+        $departments = Employee::select('department')
+            ->distinct()
+            ->whereNotNull('department')
+            ->pluck('department');
+
         return view($viewPath, [
-            'employees' => Employee::latest('id')->get(),
+            'employees' => $employees,
+            'departments' => $departments,
         ]);
     }
 }

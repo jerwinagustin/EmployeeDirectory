@@ -4,12 +4,27 @@
     x-on:open-edit-modal.window="$wire.openEditModal()"
     x-on:open-delete-modal.window="$wire.openDeleteModal()"
 >
+  
+
+    <!-- Status / Alert Banner -->
+    @if($statusMessage)
+        <div class="mb-4 px-4 py-3 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-800 text-sm flex items-center justify-between">
+            <span>{{ $statusMessage }}</span>
+            <button type="button" wire:click="$set('statusMessage', '')" class="text-indigo-500 hover:text-indigo-800 font-bold">✕</button>
+        </div>
+    @endif
+<div 
+    class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 w-full"
+    x-on:open-add-modal.window="$wire.openAddModal()"
+    x-on:open-edit-modal.window="$wire.openEditModal()"
+    x-on:open-delete-modal.window="$wire.openDeleteModal()"
+>
     <!-- Header & Action Bar -->
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Employees</h2>
             <p class="text-sm text-gray-500 mt-1">
-                Click any row to select an employee, then use the Sidebar or Row buttons to Add, Edit, or Delete.
+                Click any row to select an employee, or use the search bar below to filter records.
             </p>
         </div>
 
@@ -20,7 +35,6 @@
                 </span>
             @endif
 
-            <!-- Backup Add Button directly on the table header -->
             <button 
                 type="button"
                 wire:click="openAddModal"
@@ -31,6 +45,58 @@
         </div>
     </div>
 
+    <!-- Search & Filter Bar -->
+    <div class="mb-4 bg-white p-4 border border-gray-200 rounded-xl shadow-sm flex flex-col sm:flex-row items-center gap-3">
+        <!-- Live Search Input -->
+        <div class="relative flex-1 w-full">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </div>
+            <input 
+                type="text" 
+                wire:model.live.debounce.250ms="search" 
+                placeholder="Search by name, email, position, or department..." 
+                class="w-full pl-10 pr-9 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+            @if($search !== '')
+                <button 
+                    type="button" 
+                    wire:click="$set('search', '')" 
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                    title="Clear search"
+                >
+                    ✕
+                </button>
+            @endif
+        </div>
+
+        <!-- Department Dropdown Filter -->
+        <div class="w-full sm:w-56">
+            <select 
+                wire:model.live="departmentFilter" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+                <option value="">All Departments</option>
+                @foreach($departments as $dept)
+                    <option value="{{ $dept }}">{{ $dept }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <!-- Reset Button (Shows only when a filter is active) -->
+        @if($search !== '' || $departmentFilter !== '')
+            <button 
+                type="button" 
+                wire:click="clearFilters" 
+                class="w-full sm:w-auto px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition cursor-pointer whitespace-nowrap"
+            >
+                Reset Filters
+            </button>
+        @endif
+    </div>
+
     <!-- Status / Alert Banner -->
     @if($statusMessage)
         <div class="mb-4 px-4 py-3 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-800 text-sm flex items-center justify-between">
@@ -38,7 +104,6 @@
             <button type="button" wire:click="$set('statusMessage', '')" class="text-indigo-500 hover:text-indigo-800 font-bold">✕</button>
         </div>
     @endif
-
     <!-- Table Card Container -->
     <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
