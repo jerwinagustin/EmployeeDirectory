@@ -7,12 +7,7 @@
   
 
     <!-- Status / Alert Banner -->
-    @if($statusMessage)
-        <div class="mb-4 px-4 py-3 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-800 text-sm flex items-center justify-between">
-            <span>{{ $statusMessage }}</span>
-            <button type="button" wire:click="$set('statusMessage', '')" class="text-indigo-500 hover:text-indigo-800 font-bold">✕</button>
-        </div>
-    @endif
+   
 <div 
     class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 w-full"
     x-on:open-add-modal.window="$wire.openAddModal()"
