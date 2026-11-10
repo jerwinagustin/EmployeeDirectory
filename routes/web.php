@@ -2,15 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
-
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
-
-    Route::livewire('employees', 'pages::employees.index')->name('employees.index');
-    Route::livewire('employees/create', 'pages::employees.form')->name('employees.create');
-    Route::livewire('employees/{employee}', 'pages::employees.show')->name('employees.show');
-    Route::livewire('employees/{employee}/edit', 'pages::employees.form')->name('employees.edit');
-});
+Route::view('/', 'dashboard')->name('home');
+Route::view('/dashboard', 'dashboard')->name('dashboard');
 
 require __DIR__.'/settings.php';
